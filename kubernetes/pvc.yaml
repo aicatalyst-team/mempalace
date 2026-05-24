@@ -1,14 +1,3 @@
-apiVersion: v1
-kind: PersistentVolumeClaim
-metadata:
-  name: mempalace-data
-  namespace: mempalace
-  labels:
-    app.kubernetes.io/name: mempalace
-    app.kubernetes.io/managed-by: autopoc
-spec:
-  accessModes:
-    - ReadWriteOnce
-  resources:
-    requests:
-      storage: 1Gi
+---
+# Intentionally empty — PVC removed to fix delete timeout.
+# Each Job uses emptyDir for isolated workspace instead.

@@ -22,13 +22,11 @@ spec:
           imagePullPolicy: Always
           command: ["/bin/sh", "-c"]
           args:
-            - |
-              mkdir -p /tmp/sample-project && \
-              echo '# Architecture
-              We use GraphQL for the API layer and PostgreSQL for persistence.' > /tmp/sample-project/ARCHITECTURE.md && \
-              echo '# Setup
-              Install dependencies with npm install, then run npm start.' > /tmp/sample-project/SETUP.md && \
-              mempalace init /tmp/sample-project && \
+            - >-
+              mkdir -p /tmp/sample-project &&
+              printf '# Architecture\nWe use GraphQL for the API layer and PostgreSQL for persistence.\n' > /tmp/sample-project/ARCHITECTURE.md &&
+              printf '# Setup\nInstall dependencies with npm install, then run npm start.\n' > /tmp/sample-project/SETUP.md &&
+              mempalace init /tmp/sample-project &&
               mempalace mine /tmp/sample-project
           resources:
             requests:

@@ -22,10 +22,9 @@ spec:
           imagePullPolicy: Always
           command: ["/bin/sh", "-c"]
           args:
-            - |
-              mkdir -p /tmp/sample-project && \
-              echo '# Sample Project
-              This is a test project for MemPalace PoC validation.' > /tmp/sample-project/README.md && \
+            - >-
+              mkdir -p /tmp/sample-project &&
+              printf '# Sample Project\nThis is a test project for MemPalace PoC validation.\n' > /tmp/sample-project/README.md &&
               mempalace init /tmp/sample-project
           resources:
             requests:

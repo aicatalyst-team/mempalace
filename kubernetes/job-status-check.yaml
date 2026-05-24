@@ -22,11 +22,11 @@ spec:
           imagePullPolicy: Always
           command: ["/bin/sh", "-c"]
           args:
-            - |
-              mkdir -p /tmp/sample-project && \
-              echo 'test content' > /tmp/sample-project/test.md && \
-              mempalace init /tmp/sample-project && \
-              mempalace mine /tmp/sample-project && \
+            - >-
+              mkdir -p /tmp/sample-project &&
+              printf 'test content\n' > /tmp/sample-project/test.md &&
+              mempalace init /tmp/sample-project &&
+              mempalace mine /tmp/sample-project &&
               mempalace status
           resources:
             requests:

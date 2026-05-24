@@ -22,12 +22,11 @@ spec:
           imagePullPolicy: Always
           command: ["/bin/sh", "-c"]
           args:
-            - |
-              mkdir -p /tmp/sample-project && \
-              echo '# Architecture
-              We switched to GraphQL for the API layer because REST was too verbose.' > /tmp/sample-project/ARCHITECTURE.md && \
-              mempalace init /tmp/sample-project && \
-              mempalace mine /tmp/sample-project && \
+            - >-
+              mkdir -p /tmp/sample-project &&
+              printf '# Architecture\nWe switched to GraphQL for the API layer because REST was too verbose.\n' > /tmp/sample-project/ARCHITECTURE.md &&
+              mempalace init /tmp/sample-project &&
+              mempalace mine /tmp/sample-project &&
               mempalace search 'GraphQL'
           resources:
             requests:
