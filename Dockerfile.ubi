@@ -33,16 +33,17 @@ USER 1001
 WORKDIR /opt/app-root/src
 
 # ---- Install Python dependencies ------------------------------------------ #
-# Copy dependency manifests first for better layer caching
-COPY pyproject.toml ./
-
-# Install the package in two phases:
-# 1. Pre-install onnxruntime CPU-only variant (NOT onnxruntime-gpu)
-# 2. Install the project from source
+# Pre-install onnxruntime CPU-only variant (NOT onnxruntime-gpu)
 RUN pip install --no-cache-dir onnxruntime
 
+# Copy dependency manifests + README (required by pyproject.toml build) first
+# for better layer caching.
+COPY pyproject.toml README.md ./
+
+# Copy full source tree (including mempalace/ package dir)
 COPY . .
 
+# Install the project from source
 RUN pip install --no-cache-dir .
 
 # ---- Pre-cache the default embedding model -------------------------------- #
