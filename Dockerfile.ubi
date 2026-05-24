@@ -1,0 +1,67 @@
+# --------------------------------------------------------------------------- #
+# Dockerfile.ubi — MemPalace CLI on Red Hat UBI 9 / Python 3.12
+# --------------------------------------------------------------------------- #
+# Runtime model : CLI / Job (no network port)
+# ML workload   : yes — ChromaDB + onnxruntime (CPU-only)
+# OpenShift     : arbitrary-UID safe (group 0 permissions, USER 1001)
+# --------------------------------------------------------------------------- #
+FROM registry.access.redhat.com/ubi9/python-312
+
+# ---- Build-time labels ---------------------------------------------------- #
+LABEL name="mempalace" \
+      summary="Give your AI a memory — mine projects and conversations into a searchable palace" \
+      version="3.3.5" \
+      io.k8s.display-name="mempalace" \
+      io.openshift.tags="ai,memory,llm,chromadb,cli"
+
+# ---- System dependencies -------------------------------------------------- #
+# Switch to root for package installation
+USER 0
+
+# gcc + python3-devel are needed to compile native wheels (e.g. chroma-hnswlib).
+# sqlite is needed at runtime by ChromaDB's persistence layer.
+RUN dnf install -y \
+        gcc \
+        gcc-c++ \
+        python3-devel \
+        sqlite \
+    && dnf clean all
+
+USER 1001
+
+# ---- Application directory ------------------------------------------------ #
+WORKDIR /opt/app-root/src
+
+# ---- Install Python dependencies ------------------------------------------ #
+# Copy dependency manifests first for better layer caching
+COPY pyproject.toml ./
+
+# Install the package in two phases:
+# 1. Pre-install onnxruntime CPU-only variant (NOT onnxruntime-gpu)
+# 2. Install the project from source
+RUN pip install --no-cache-dir onnxruntime
+
+COPY . .
+
+RUN pip install --no-cache-dir .
+
+# ---- Pre-cache the default embedding model -------------------------------- #
+# ChromaDB's default embedding function (all-MiniLM-L6-v2 via onnxruntime)
+# downloads the model on first use. Warm it up at build time so the container
+# starts without needing network access.
+RUN python -c "import chromadb; chromadb.Client().get_or_create_collection('warmup')"
+
+# ---- Palace data directory ------------------------------------------------ #
+# Create a writable directory for palace data (ChromaDB index).
+# Mount a PVC here in production to persist across runs.
+USER 0
+RUN mkdir -p /opt/app-root/src/.mempalace \
+    && chgrp -R 0 /opt/app-root \
+    && chmod -R g=u /opt/app-root
+USER 1001
+
+# ---- Entrypoint ----------------------------------------------------------- #
+# CLI tool — container acts as the `mempalace` command.
+# Running with no args shows usage (--help).
+ENTRYPOINT ["mempalace"]
+CMD ["--help"]
