@@ -16,6 +16,8 @@ spec:
         app.kubernetes.io/name: mempalace
         app.kubernetes.io/component: mine-project
     spec:
+      imagePullSecrets:
+        - name: quay-aicatalyst-pull
       containers:
         - name: mempalace
           image: quay.io/aicatalyst/mempalace-mempalace:latest
