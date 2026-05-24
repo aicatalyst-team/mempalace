@@ -1,14 +1,14 @@
+---
+# PVC removed — all Jobs use emptyDir volumes for isolated test scenarios.
+# Replaced with a lightweight ConfigMap to avoid PVC deletion timeouts
+# during redeployment. Each Job gets its own ephemeral storage via emptyDir.
 apiVersion: v1
-kind: PersistentVolumeClaim
+kind: ConfigMap
 metadata:
-  name: mempalace-data
+  name: mempalace-config
   namespace: mempalace
   labels:
     app.kubernetes.io/name: mempalace
     app.kubernetes.io/managed-by: autopoc
-spec:
-  accessModes:
-    - ReadWriteOnce
-  resources:
-    requests:
-      storage: 1Gi
+data:
+  info: "MemPalace PoC - CLI tool test scenarios use emptyDir volumes"
