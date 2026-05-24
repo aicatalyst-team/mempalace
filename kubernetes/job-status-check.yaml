@@ -1,0 +1,50 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: mempalace-status-check
+  namespace: mempalace
+  labels:
+    app.kubernetes.io/name: mempalace
+    app.kubernetes.io/component: status-check
+    app.kubernetes.io/managed-by: autopoc
+spec:
+  backoffLimit: 1
+  activeDeadlineSeconds: 120
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: mempalace
+        app.kubernetes.io/component: status-check
+    spec:
+      containers:
+        - name: mempalace
+          image: quay.io/aicatalyst/mempalace-mempalace:latest
+          imagePullPolicy: Always
+          command: ["/bin/sh", "-c"]
+          args:
+            - |
+              mkdir -p /tmp/sample-project && \
+              echo 'test content' > /tmp/sample-project/test.md && \
+              mempalace init /tmp/sample-project && \
+              mempalace mine /tmp/sample-project && \
+              mempalace status
+          resources:
+            requests:
+              memory: "1Gi"
+              cpu: "500m"
+            limits:
+              memory: "2Gi"
+              cpu: "1000m"
+          volumeMounts:
+            - name: palace-data
+              mountPath: /opt/app-root/src/.mempalace
+          securityContext:
+            allowPrivilegeEscalation: false
+            runAsNonRoot: true
+            capabilities:
+              drop:
+                - ALL
+      volumes:
+        - name: palace-data
+          emptyDir: {}
+      restartPolicy: Never
