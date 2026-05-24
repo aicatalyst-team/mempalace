@@ -59,13 +59,26 @@ RUN pip install --no-cache-dir .
 # ChromaDB's default embedding function (all-MiniLM-L6-v2 via onnxruntime)
 # downloads the model on first use. Warm it up at build time so the container
 # starts without needing network access.
-RUN python -c "import chromadb; chromadb.Client().get_or_create_collection('warmup')"
+# Use a temporary directory for the warmup ChromaDB data so it doesn't leave
+# stale state in the working directory or palace path.
+RUN python -c "\
+import tempfile, os; \
+tmpdir = tempfile.mkdtemp(); \
+import chromadb; \
+c = chromadb.PersistentClient(path=os.path.join(tmpdir, 'warmup')); \
+c.get_or_create_collection('warmup'); \
+" && rm -rf /tmp/tmp*
 
 # ---- Palace data directory ------------------------------------------------ #
-# Create a writable directory for palace data (ChromaDB index).
-# Mount a PVC here in production to persist across runs.
+# The app defaults to ~/.mempalace (= /opt/app-root/.mempalace).
+# Set MEMPALACE_PALACE_PATH so all commands use a consistent, writable path.
+# Create directories for palace data, config, and ONNX model cache.
+# Mount a PVC at /opt/app-root/.mempalace in production to persist across runs.
+ENV MEMPALACE_PALACE_PATH=/opt/app-root/.mempalace/palace
+
 USER 0
-RUN mkdir -p /opt/app-root/src/.mempalace \
+RUN mkdir -p /opt/app-root/.mempalace/palace \
+             /opt/app-root/.cache \
     && chgrp -R 0 /opt/app-root \
     && chmod -R g=u /opt/app-root
 USER 1001
