@@ -19,12 +19,10 @@ LABEL name="mempalace" \
 USER 0
 
 # gcc + python3-devel are needed to compile native wheels (e.g. chroma-hnswlib).
-# sqlite is needed at runtime by ChromaDB's persistence layer.
 RUN dnf install -y \
         gcc \
         gcc-c++ \
         python3-devel \
-        sqlite \
     && dnf clean all
 
 USER 1001
@@ -35,6 +33,17 @@ WORKDIR /opt/app-root/src
 # ---- Install Python dependencies ------------------------------------------ #
 # Pre-install onnxruntime CPU-only variant (NOT onnxruntime-gpu)
 RUN pip install --no-cache-dir onnxruntime
+
+# Install pysqlite3-binary to provide a modern SQLite (>= 3.35.0) that
+# ChromaDB requires.  The UBI9 system SQLite is too old.
+RUN pip install --no-cache-dir pysqlite3-binary
+
+# Patch Python's sqlite3 module so that ChromaDB (and anything else that
+# does ``import sqlite3``) transparently picks up the newer bundled
+# pysqlite3 instead of the system library.
+RUN SITE=$(python -c "import sysconfig; print(sysconfig.get_path('purelib'))") && \
+    echo "# sqlite3 shim — redirect to pysqlite3 (modern SQLite for ChromaDB)" > "${SITE}/sqlite3_shim.pth" && \
+    echo "import sys; sys.modules['sqlite3'] = __import__('pysqlite3')" >> "${SITE}/sqlite3_shim.pth"
 
 # Copy dependency manifests + README (required by pyproject.toml build) first
 # for better layer caching.
