@@ -1,4 +1,10 @@
-> [!CAUTION]
+> [!WARNING]
+> **This repository is archived.**
+>
+> Archived on 2026-09-08 by the AI Catalyst Platform Team.
+> It is read-only and no longer maintained.
+
+---> [!CAUTION]
 > # 🚨 CRITICAL SECURITY WARNING: BEWARE OF SCAMS
 > **MemPalace has NO other official websites.**
 > 
